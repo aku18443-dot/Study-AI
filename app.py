@@ -1,17 +1,15 @@
 import os
 import streamlit as st
 from openai import OpenAI
+import requests
 from PIL import Image
-import pytesseract
-import numpy as np
-import matplotlib.pyplot as plt
 import PyPDF2
 
-# 🔑 Token
-HF_TOKEN = os.getenv("")
+# 🔑 Token (Railway se aayega)
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 if not HF_TOKEN:
-    st.error("HF_TOKEN missing! Add in Railway variables.")
+    st.error("❌ HF_TOKEN missing! Add it in Railway Variables")
     st.stop()
 
 # 🧠 AI client
@@ -20,14 +18,13 @@ client = OpenAI(
     api_key=HF_TOKEN,
 )
 
-# 🎨 UI config
-st.set_page_config(page_title="Anshu Study AI 💖", layout="centered")
+# 🎨 UI
+st.set_page_config(page_title="💖 Anshu Study AI", layout="centered")
 
 st.markdown("""
 <style>
 .stApp {
     background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-    color: black;
 }
 h1 {
     text-align: center;
@@ -43,12 +40,25 @@ h1 {
     padding: 20px;
     border-radius: 12px;
     margin-top: 20px;
-    color: black;
 }
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown("<h1>💖 Anshu Study AI</h1>", unsafe_allow_html=True)
+
+# 📷 OCR function (Railway compatible)
+def extract_text(image_file):
+    url = "https://api.ocr.space/parse/image"
+    response = requests.post(
+        url,
+        files={"file": image_file},
+        data={"apikey": "helloworld"}
+    )
+    result = response.json()
+    try:
+        return result["ParsedResults"][0]["ParsedText"]
+    except:
+        return "Text not detected properly"
 
 # 📥 Inputs
 image = st.file_uploader("📷 Upload Question Image", type=["png","jpg","jpeg"])
@@ -67,22 +77,22 @@ if image:
     img = Image.open(image)
     st.image(img, caption="Uploaded Image")
 
-    # OCR
-    img_gray = np.array(img.convert("L"))
-    text = pytesseract.image_to_string(img_gray)
-
-    st.markdown("### 📄 Detected Question")
-    st.code(text)
-
     if st.button("🚀 Solve Now"):
 
+        # 🧠 OCR
+        text = extract_text(image)
+
+        st.markdown("### 📄 Detected Question")
+        st.code(text)
+
+        # 🤖 AI solve
         prompt = f"""
         You are a BTech expert tutor.
 
         Solve step-by-step.
         Explain clearly in simple Hindi + English.
         Give final answer.
-        Double check result.
+        Double check answer.
 
         Question: {text}
         PDF Content: {pdf_text[:1500]}
@@ -101,14 +111,6 @@ if image:
         <p>{answer}</p>
         </div>
         """, unsafe_allow_html=True)
-
-        # 📊 Example diagram
-        st.markdown("### 📊 Example Graph")
-        x = np.linspace(0,10,50)
-        y = x**2
-        plt.figure()
-        plt.plot(x,y)
-        st.pyplot(plt)
 
 # 💖 Footer
 st.markdown("""
