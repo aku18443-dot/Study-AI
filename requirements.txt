@@ -1,0 +1,7 @@
+streamlit
+openai
+pillow
+pytesseract
+numpy
+matplotlib
+PyPDF2
