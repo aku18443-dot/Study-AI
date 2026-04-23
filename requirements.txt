@@ -1,7 +1,5 @@
 streamlit
 openai
+requests
 pillow
-pytesseract
-numpy
-matplotlib
 PyPDF2
